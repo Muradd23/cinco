@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Cartas - Suma Menor a 5</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Juego de Cartas</h1>
+            <div class="game-info">
+                <span id="player-name">Jugador: Invitado</span>
+                <span id="game-status">Esperando jugadores...</span>
+            </div>
+        </div>
+
+        <div class="reglas-section">
+            <button id="toggle-rules">Mostrar Reglas</button>
+            <div id="reglas-content" class="hidden">
+                <h2>Reglas del Juego</h2>
+                <ul>
+                    <li><strong>Objetivo</strong>: Tener la suma de los valores de tus cartas menor a 5.</li>
+                    <li><strong>Inicio</strong>: Cada jugador recibe 5 cartas boca abajo y debe ver 2 cartas al inicio.</li>
+                    <li><strong>Turno</strong>:
+                        <ol>
+                            <li>Roba una carta del mazo central.</li>
+                            <li>Puedes:
+                                <ul>
+                                    <li>Intercambiarla por una de tus cartas boca abajo.</li>
+                                    <li>Quemarla (descarte en el pozo).</li>
+                                    <li>Usar su habilidad (si la carta robada tiene una).</li>
+                                </ul>
+                            </li>
+                            <li>Si tienes la última carta del pozo en tu mazo, puedes eliminar una carta de tu mazo.</li>
+                        </ol>
+                    </li>
+                    <li><strong>Fin del juego</strong>: Cuando un jugador dice fin, se muestran todas las cartas y gana quien tenga la suma de valores menor a 5 (o la más baja si hay empate).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="game-board">
+            
+
+            <div class="opponents-area" id="opponents-area">
+                <!-- Los oponentes se agregarán dinámicamente -->
+            </div>
+            <div class="central-desk">
+                <div class="central-deck-cards" id="central-deck-cards">
+                    <div class="deck-count">Mazo: <span id="deck-count">20</span></div>
+                </div>
+                <div class="discard-pile" id="discard-pile">
+                    <div class="pile-count">Pozo: <span id="discard-count">0</span></div>
+                </div>
+            </div>
+            <div class="player-area">
+                <div class="player-cards" id="player-cards">
+                    <!-- Las cartas del jugador se agregarán dinámicamente -->
+                </div>
+                <div class="player-actions">
+                    <button id="draw-card" disabled>Robar Carta</button>
+                    <button id="end-game" disabled>FIN!!</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="card-selection-modal">
+            <div class="modal-content">
+                <h3>Selecciona una carta para intercambiar</h3>
+                <div class="modal-cards" id="modal-cards">
+                    <!-- Cartas para seleccionar se agregarán dinámicamente -->
+                </div>
+                <button id="cancel-selection">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="initial-selection-modal">
+            <div class="modal-content">
+                <h3>Selecciona 2 cartas para ver al inicio</h3>
+                <div class="modal-cards" id="initial-selection-cards">
+                    <!-- Cartas iniciales se agregarán dinámicamente -->
+                </div>
+                <button id="confirm-selection" disabled>Confirmar (0/2)</button>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="game-result-modal">
+            <div class="modal-content">
+                <h3 id="result-title">Resultado del Juego</h3>
+                <div id="result-content">
+                    <!-- Resultados se mostrarán aquí -->
+                </div>
+                <button id="close-result">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
