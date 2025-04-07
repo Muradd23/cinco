@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const deckCount = document.getElementById('deck-count');
     const discardCount = document.getElementById('discard-count');
     const gameStatus = document.getElementById('game-status');
+    let sonido = new Audio('./sonidos/casino.ogg');
+    
     
     // Modales
     const cardSelectionModal = document.getElementById('card-selection-modal');
@@ -46,16 +48,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar el juego (simulación)
      function initGame() {
           //Simular jugadores (en un juego real esto vendría del servidor)
+     
          gameState.players = [
              { id: 'player1', name: 'Jugador 1', cards: [], isPlayer: true },
              { id: 'player2', name: 'Jugador 2', cards: [], isPlayer: false },
              { id: 'player3', name: 'Jugador 3', cards: [], isPlayer: false }
          ];
         
-          //Simular mazo de cartas (valores del 1 al 5)
+        //Simular mazo de cartas (valores del 1 al 5)
          gameState.deck = Array.from({length: 20}, (_, i) => ({
              id: `card-${i}`,
-             value: Math.floor(Math.random() * 5) + 1,
+             value: Math.floor(Math.random() * 10) + 1,
              skill: Math.random() > 0.7 ? 'Habilidad especial' : null
          }));
         
@@ -101,6 +104,8 @@ document.addEventListener('DOMContentLoaded', function() {
         renderDiscardPile();
     }
 
+  
+
     // Renderizar cartas del jugador
     function renderPlayerCards() {
         playerCardsContainer.innerHTML = '';
@@ -139,12 +144,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Renderizar pozo de descarte
     function renderDiscardPile() {
-        discardPile.innerHTML = '';
-        discardPile.innerHTML = '<div class="pile-count">Pozo: <span id="discard-count">0</span></div>';
+        discardPile.innerHTML = '<div class="pile-count">Pozo: <span id="discard-count">' + gameState.discardPile.length + '</span></div>';
         
         if (gameState.discardPile.length > 0) {
+            // Tomar la última carta del pozo (la más reciente)
             const topCard = gameState.discardPile[gameState.discardPile.length - 1];
-            const cardElement = createCardElement(topCard, null, true);
+            
+            // Crear elemento de carta mostrando su valor (boca arriba)
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card';
+            cardElement.innerHTML = `
+                <div class="card-value">${topCard.value}</div>
+                ${topCard.skill ? `<div class="card-skill">${topCard.skill}</div>` : ''}
+            `;
+            
+            // Limpiar y agregar la carta al pozo
             discardPile.appendChild(cardElement);
         }
     }
@@ -176,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showInitialCardSelection() {
         initialSelectionCards.innerHTML = '';
         const player = gameState.players.find(p => p.isPlayer);
-        
+        bandera=false
         if (player) {
             player.cards.forEach((card, index) => {
                 const cardElement = document.createElement('div');
@@ -201,6 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             initialSelectionModal.classList.remove('hidden');
+          
         }
     }
 
@@ -216,6 +231,13 @@ document.addEventListener('DOMContentLoaded', function() {
             initialSelectionModal.classList.add('hidden');
             updateGameUI();
         }
+        setTimeout(() => {
+            gameState.selectedCards.forEach(index => {
+                player.cards[index].faceUp = false; // Volver a poner boca abajo
+            });
+            updateGameUI();
+        }, 3200);
+       
     });
 
     // Robar carta
@@ -230,23 +252,31 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('No quedan cartas en el mazo!');
         }
     });
-
+    
     // Mostrar opciones para carta robada
-    function showCardOptions(card) {
+   
+    function showCardOptions(drawnCard) {
         const player = gameState.players.find(p => p.isPlayer);
         
         // Crear modal de selección
         modalCardsContainer.innerHTML = '';
         
-        // Opción 1: Intercambiar por una carta boca abajo
+        // 1. Mostrar la carta robada
+        const drawnCardElement = createCardElement({...drawnCard, faceUp: true}, null, true);
+        modalCardsContainer.appendChild(drawnCardElement);
+        
+        // 2. Opción de intercambio (todas las cartas boca abajo)
         const faceDownCards = player.cards
             .map((c, i) => ({card: c, index: i}))
             .filter(({card}) => !card.faceUp);
         
         if (faceDownCards.length > 0) {
             const optionTitle = document.createElement('h4');
-            optionTitle.textContent = 'Intercambiar por una carta boca abajo:';
+            optionTitle.textContent = 'Selecciona qué carta intercambiar:';
             modalCardsContainer.appendChild(optionTitle);
+            
+            const cardsContainer = document.createElement('div');
+            cardsContainer.className = 'exchange-options';
             
             faceDownCards.forEach(({index}) => {
                 const cardElement = document.createElement('div');
@@ -257,41 +287,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 cardElement.addEventListener('click', function() {
                     // Intercambiar cartas
                     const oldCard = player.cards[index];
-                    player.cards[index] = {...card, faceUp: true};
+                    player.cards[index] = {...drawnCard, faceUp: false};
                     gameState.discardPile.push(oldCard);
                     
-                    // Cerrar modal y actualizar UI
+                    // Cerrar modal y actualizar
                     cardSelectionModal.classList.add('hidden');
                     updateGameUI();
                     endTurn();
                 });
                 
-                modalCardsContainer.appendChild(cardElement);
+                cardsContainer.appendChild(cardElement);
             });
+            
+            modalCardsContainer.appendChild(cardsContainer);
         }
         
-        // Opción 2: Quemar la carta
-        const burnOption = document.createElement('div');
-        burnOption.className = 'burn-option';
-        burnOption.innerHTML = `
-            <h4>Opciones:</h4>
+        // 3. Otras opciones (quemar/usar habilidad)
+        const otherOptions = document.createElement('div');
+        otherOptions.className = 'other-options';
+        otherOptions.innerHTML = `
+            <h4>Otras opciones:</h4>
             <button id="burn-card" class="action-btn">Quemar Carta</button>
-            ${card.skill ? `<button id="use-skill" class="action-btn">Usar Habilidad (${card.skill})</button>` : ''}
+            ${drawnCard.skill ? `<button id="use-skill" class="action-btn">Usar Habilidad (${drawnCard.skill})</button>` : ''}
         `;
-        modalCardsContainer.appendChild(burnOption);
+        modalCardsContainer.appendChild(otherOptions);
         
+        // Event listeners para otras opciones
         document.getElementById('burn-card').addEventListener('click', function() {
-            gameState.discardPile.push(card);
+            gameState.discardPile.push(drawnCard);
             cardSelectionModal.classList.add('hidden');
             updateGameUI();
             endTurn();
         });
         
-        if (card.skill) {
+        
+        if (drawnCard.skill) {
             document.getElementById('use-skill').addEventListener('click', function() {
-                alert(`Habilidad especial usada: ${card.skill}`);
-                // Aquí iría la lógica de la habilidad
-                gameState.discardPile.push(card);
+                alert(`Habilidad especial usada: ${drawnCard.skill}`);
+                gameState.discardPile.push(drawnCard);
                 cardSelectionModal.classList.add('hidden');
                 updateGameUI();
                 endTurn();
@@ -301,11 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Mostrar modal
         cardSelectionModal.classList.remove('hidden');
     }
-
-    // Cancelar selección de carta
-    cancelSelectionBtn.addEventListener('click', function() {
-        cardSelectionModal.classList.add('hidden');
-    });
 
     // Terminar turno
     function endTurn() {

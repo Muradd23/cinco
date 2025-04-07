@@ -1,0 +1,175 @@
+ Con las habilidades de las cartas definidas, vamos a integrarlas en el diseño y desarrollo del juego. Aquí tienes una guía actualizada:
+
+---
+
+### **1. Reglas del juego (detalladas)**:
+- **Objetivo**: El jugador que tenga la **suma de los valores de sus cartas menor o igual a 5** gana.
+- **Inicio**:
+  - Cada jugador recibe **5 cartas boca abajo**.
+  - Cada jugador debe obligatoriamente **ver 2 cartas** de su mazo solo al inicio (las elige).
+- **Turno**:
+  1. El jugador **roba una carta** del mazo central.
+  2. Puede:
+     - **Intercambiarla** por una de sus cartas boca abajo.
+     - **Quemarla** (descarte en el pozo).
+     - **Usar su habilidad** (si la carta robada tiene una).
+  3. Si el jugador tiene en su mazo la **última carta del pozo**, puede **eliminar una carta** de su mazo.
+- **Fin del juego**:
+  - El juego termina cuando un jugador dice fin, entonces se muestran las cartas de todos y  se cuentan los valores de las cartas la **suma de los valores de sus cartas menor a 5**.
+  - Si varios jugadores cumplen esta condición, gana el que tenga la **suma más baja**.
+
+---
+
+### **2. Diseño de las cartas**
+- **Valores de las cartas**:
+  - **8**: Puede ver una carta de su mazo.
+  - **9**: Puede ver una carta del mazo del rival.
+  - **10**: Puede cambiar sin ver una carta de su mazo con otra carta del mazo de otro jugador que elija.
+  - **J**: Puede cambiar viendo o simplemente comparar las cartas. También vale **11**.
+  - **Q**: Vale **-1**.
+  - **K**: Vale **0**.
+  - **Cartas normales**: Valores del 1 al 7.
+
+- **Diseño visual**:
+  - Cada carta debe mostrar su **valor** y **habilidad** (si tiene).
+  - Usa colores o símbolos para diferenciar cartas normales de cartas con habilidades.
+
+---
+
+### **3. Desarrollo del juego**
+#### **Frontend (Interfaz de usuario)**:
+- **Mazo de cada jugador**: Muestra 5 cartas boca abajo, con la opción de ver 2 al inicio.
+- **Pozo**: Muestra las cartas descartadas (la última carta visible es importante).
+- **Mazo central**: De donde los jugadores roban cartas.
+- **Botones de acción**: "Robar carta", "Intercambiar", "Quemar", "Usar habilidad".
+- **Suma de valores**: Muestra la suma actual de los valores de las cartas de cada jugador.
+
+#### **Backend (Lógica del juego)**:
+- **Estado del juego**:
+  - Cartas en el mazo de cada jugador.
+  - Cartas en el pozo.
+  - Turno actual.
+  - Suma de los valores de las cartas de cada jugador.
+- **Lógica de turnos**:
+  - Gestiona el flujo del juego (robos, intercambios, descartes, habilidades).
+- **Verificación de victoria**:
+  - Revisa si algún jugador tiene la suma de los valores de sus cartas menor a 5.
+
+#### **Base de datos**:
+- **Cartas**: Almacena la información de cada carta (valor, habilidad, etc.).
+- **Partidas**: Guarda el estado de cada partida (cartas de los jugadores, pozo, etc.).
+- **Usuarios**: Registra los jugadores y sus estadísticas.
+
+---
+
+### **4. Implementación de características**
+#### **Habilidades de las cartas**:
+- Crea un sistema modular para las habilidades, para que sea fácil agregar nuevas cartas en el futuro.
+- Ejemplo de código para las habilidades (en JavaScript):
+  ```javascript
+  const habilidades = {
+    verCartaPropia: (jugador) => {
+      const carta = jugador.verCarta();
+      console.log(`Viste la carta: ${carta.valor}`);
+    },
+    verCartaRival: (jugador, rival) => {
+      const carta = rival.verCarta();
+      console.log(`Viste la carta del rival: ${carta.valor}`);
+    },
+    cambiarCarta: (jugador, rival) => {
+      const cartaJugador = jugador.seleccionarCarta();
+      const cartaRival = rival.seleccionarCarta();
+      jugador.intercambiarCarta(cartaJugador, cartaRival);
+    },
+    compararCartas: (jugador, rival) => {
+      const cartaJugador = jugador.verCarta();
+      const cartaRival = rival.verCarta();
+      if (cartaJugador.valor > cartaRival.valor) {
+        console.log("Tu carta es mayor.");
+      } else {
+        console.log("La carta del rival es mayor.");
+      }
+    },
+  };
+  ```
+
+#### **Multijugador**:
+- Usa **WebSockets** (con Socket.io) para permitir partidas en tiempo real.
+- Ejemplo básico de Socket.io:
+  ```javascript
+  const io = require("socket.io")(server);
+  io.on("connection", (socket) => {
+    socket.on("jugarCarta", (carta) => {
+      // Lógica para jugar la carta
+      io.emit("actualizarJuego", estadoDelJuego);
+    });
+  });
+  ```
+
+#### **Interfaz de usuario**:
+- Usa **React** o **Vue.js** para crear una interfaz dinámica.
+- Ejemplo de una carta en React:
+  ```jsx
+  function Carta({ carta, bocaAbajo, onClick }) {
+    return (
+      <div className="carta" onClick={onClick}>
+        {bocaAbajo ? "🂠" : carta.valor}
+      </div>
+    );
+  }
+  ```
+
+---
+
+### **5. Pruebas y balance**
+- **Pruebas de usabilidad**: Asegúrate de que el juego sea fácil de entender y jugar.
+- **Pruebas de balance**: Verifica que los valores de las cartas y las habilidades estén equilibrados.
+- **Pruebas de rendimiento**: Asegúrate de que el juego funcione bien en diferentes dispositivos y navegadores.
+
+---
+
+### **6. Lanzamiento y promoción**
+- **Hosting**: Publica el juego en un servidor (puedes usar servicios como **Heroku**, **Vercel**, o **AWS**).
+- **Marketing**: Promociona el juego en redes sociales, foros y comunidades de juegos.
+- **Feedback**: Escucha a los jugadores y mejora el juego con actualizaciones.
+
+---
+
+### **Ejemplo de flujo de juego**:
+1. **Inicio**:
+   - Jugador 1 ve 2 cartas de su mazo (valores 3 y 5).
+   - Jugador 2 ve 2 cartas de su mazo (valores 2 y 4).
+2. **Turno de Jugador 1**:
+   - Roba una carta del mazo central (carta 8).
+   - Usa la habilidad de la carta 8 para ver una carta de su mazo (descubre una carta de valor 7).
+   - Decide quemar la carta 8 en el pozo.
+   - Suma actual: 3 + 5 + 7 = 15.
+3. **Turno de Jugador 2**:
+   - Roba una carta (carta Q, valor -1).
+   - Intercambia la carta Q con una carta boca abajo de su mazo (cambia la carta de valor 4 por la carta Q).
+   - Suma actual: 2 + (-1) = 1.
+4. **Fin del juego**:
+   - Jugador 2 gana al tener una suma de 1 (menor a 5).
+
+---
+Próximos pasos
+Agrega más funcionalidades al juego (lógica de turnos, manejo de habilidades, etc.).
+
+Implementa la interfaz gráfica para mostrar las cartas y las acciones del juego.
+
+Agrega autenticación de usuarios para guardar partidas y estadísticas.
+
+
+
+Implementa más acciones (intercambiar, quemar, usar habilidades).
+
+Agrega validaciones para asegurarte de que los jugadores no hagan trampa.
+
+Mejora la interfaz gráfica para que sea más atractiva.
+
+Mejoras Posibles:
+Conexión con Backend:
+
+Agregar llamada API para verificar credenciales
+
+Manejar estados de carga/error

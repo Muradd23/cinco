@@ -304,3 +304,20 @@ body {
         gap: 5px;
     }
 }
+.exchange-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 15px 0;
+}
+
+.other-options {
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+}
+
+.action-btn {
+    margin: 0 5px;
+    padding: 8px 15px;
+}
